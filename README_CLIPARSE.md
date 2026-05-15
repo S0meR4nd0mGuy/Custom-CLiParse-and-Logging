@@ -469,7 +469,7 @@ If `--api-key` is not provided on CLI, CliParse will check the `API_KEY` environ
 
 - **No external dependencies**: Uses Python stdlib only
 - **Python 3.6+**: Uses f-strings and type hints
-- **Lightweight**: ~550 lines of code
+- **Lightweight**: ~1000 lines of code
 - **Typed**: Full type hints for IDE support
 - **Modular**: Import only what you need
 

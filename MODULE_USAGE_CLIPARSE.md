@@ -15,7 +15,7 @@ Complete guide with patterns and recipes for using CliParse in your applications
 
 ### Basic Structure
 
-Every CliParse application follows this pattern:
+Every CliParse application follows this pattern (Please not that those flags (and patterns) are just examples, feel free to experiment around!):
 
 ```python
 from cliparse import CliApp, ParamType

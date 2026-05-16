@@ -592,6 +592,3 @@ app.add_constraint(validate_database_config)
 ---
 
 **CliParse** - Modern CLI parsing made simple.
-
-Start with: `logger = get_logger("myapp")`
-Done! 🚀

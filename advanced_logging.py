@@ -567,7 +567,7 @@ def get_logger(name: str, level: Union[int, LogLevel] = LogLevel.DEBUG,
     
     # Clear existing handlers to avoid duplicates
     if not logger.handlers:
-        if console:
+        if console == True:
             logger.add_console_handler(level, format_style)
         
         if file:

@@ -111,19 +111,19 @@ Define a parameter (positional or optional).
 
 ```python
 app.define_param(
-    name,                    # "filename" (positional) or "--output" (optional)
-    aliases=(),             # Alternative names
-    short="o",              # Short flag like "-o"
+    name,                         # "filename" (positional) or "--output" (optional)
+    aliases=(),                   # Alternative names
+    short="o",                    # Short flag like "-o"
     param_type=ParamType.STRING,  # Type of value
-    required=False,         # Must be provided
-    help_text="",          # Help description
-    default=None,          # Default value
-    choices=None,          # Allowed values
-    validator=None,        # Custom validation function
-    transformer=None,      # Transform input
-    env_var=None,         # Environment variable fallback
-    multi=False,          # Accept multiple values
-    hidden=False          # Hide from help
+    required=False,               # Must be provided
+    help_text="",                 # Help description
+    default=None,                 # Default value
+    choices=None,                 # Allowed values
+    validator=None,               # Custom validation function
+    transformer=None,             # Transform input
+    env_var=None,                 # Environment variable fallback
+    multi=False,                  # Accept multiple values
+    hidden=False                  # Hide from help
 )
 ```
 
@@ -172,9 +172,9 @@ app.define_flag(
     name,              # "verbose" or "--debug"
     aliases=(),        # Alternative names
     short="v",         # Short flag like "-v"
-    help_text="",     # Help description
-    default=False,    # Default value
-    hidden=False      # Hide from help
+    help_text="",      # Help description
+    default=False,     # Default value
+    hidden=False       # Hide from help
 )
 ```
 
@@ -230,7 +230,7 @@ app.add_constraint(my_constraint)
 
 **`parse(args=None)`** - Parse arguments
 ```python
-config = app.parse()              # Parse sys.argv
+config = app.parse()                    # Parse sys.argv
 config = app.parse(["file.txt", "-v"])  # Parse specific args
 ```
 

@@ -1,0 +1,5 @@
+[2026-05-16 16:54:52.673] DEBUG    - multi_handler - <module>:50 - Debug info (file only)
+[2026-05-16 16:54:52.673] INFO     - multi_handler - <module>:51 - Info message (file only)
+[2026-05-16 16:54:52.674] WARNING  - multi_handler - <module>:52 - Warning message (file only)
+[2026-05-16 16:54:52.674] ERROR    - multi_handler - <module>:53 - Error message (console + file)
+[2026-05-16 16:54:52.674] CRITICAL - multi_handler - <module>:54 - Critical message (console + file)

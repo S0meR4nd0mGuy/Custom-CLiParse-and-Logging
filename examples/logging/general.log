@@ -1,0 +1,3 @@
+[2026-05-16 16:54:52.681] INFO     - production_app - Production environment initialized
+[2026-05-16 16:54:52.682] WARNING  - production_app - Cache warmer running in background
+[2026-05-16 16:54:52.682] ERROR    - production_app - Failed to connect to secondary database

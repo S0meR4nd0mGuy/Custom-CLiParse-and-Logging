@@ -1,202 +1,269 @@
 # CliParse - Modern CLI Argument Parser
 
-**A lightweight, powerful Python CLI argument parser with a modern API and rich terminal features. Completely different from argparse with unique naming, advanced constraints, and beautiful styling.**
+A feature-rich, from-scratch CLI parsing library with an intuitive API that doesn't mimic argparse. Built for modern Python applications with semantic validation, rich colored output, and parameter grouping.
 
-## 🎯 Why CliParse?
+## Features
 
-CliParse is **not** a copy of argparse - it's a complete redesign with a unique, intuitive API:
-
-| Feature | argparse | CliParse |
-|---------|----------|----------|
-| **Main Class** | `ArgumentParser` | `CliApp` |
-| **Define** | `add_argument()` | `define_param()` / `define_flag()` |
-| **Types** | String types ("int", "float") | `ParamType` enum |
-| **Constraints** | Very limited | Rich: forbid, require, custom |
-| **Colors** | ❌ | ✅ ANSI colors |
-| **Emojis** | ❌ | ✅ Visual indicators |
-| **Transformers** | Limited | Full support |
-| **Learning Curve** | Steep | Gentle |
-| **Dependencies** | 0 | 0 |
-
-## ✨ Key Features
-
-✅ **Distinct API** - Not a copy, unique naming and structure  
+✅ **Distinct API** - Not argparse; unique naming (`CliApp`, `define_param`, `define_flag`)  
 ✅ **Type Safety** - `ParamType` enum prevents typos  
-✅ **Advanced Constraints** - Dependencies, conflicts, custom validation  
-✅ **Rich Terminal Features** - Colors, emojis, organized groups  
-✅ **Transformer Functions** - Custom type conversion  
-✅ **Environment Variable Fallback** - Automatic env var support  
+✅ **Semantic Validation** - Dependencies, conflicts, custom constraints  
+✅ **Rich Terminal Output** - ANSI colors with emoji indicators  
 ✅ **Parameter Groups** - Organize related parameters  
-✅ **Multi-Value Support** - Accept multiple values  
-✅ **Zero Dependencies** - Pure Python stdlib only  
-✅ **Production Ready** - Fully tested and documented  
+✅ **Positional & Optional** - Full support for both  
+✅ **Short Flags** - `-v` style shortcuts  
+✅ **Environment Variables** - Automatic fallback support  
+✅ **Custom Transformers** - Transform input values  
+✅ **Zero Dependencies** - Pure Python stdlib  
 
-## 🚀 Quick Start
+## Installation
 
-### Installation
-```python
-from cliparse import CliApp, ParamType
+```bash
+pip install -e .
 ```
 
-### One-Minute Example
+## Quick Start
+
 ```python
 from cliparse import CliApp, ParamType
 
 app = CliApp(name="hello", version="1.0.0")
 
-app.define_param("name", required=True)
+app.define_param("name", required=True, help_text="Your name")
 app.define_param("--count", short="c", param_type=ParamType.INTEGER, default=1)
-app.define_flag("verbose", short="v")
+app.define_flag("verbose", short="v", help_text="Verbose output")
 
 config = app.parse()
-print(f"Hello {config['name']}!" * config['count'])
+
+for _ in range(config['count']):
+    print(f"Hello {config['name']}!")
+    
+if config['verbose']:
+    print("Verbose mode enabled")
 ```
 
-Run: `python hello.py Alice -c 3 -v`
+**Run:** `python hello.py Alice --count 3 -v`
 
-## 📚 Complete API Reference
+## Core Concepts
 
-### CliApp - Main Class
+### CliApp vs ArgumentParser
 
-#### Constructor
+CliParse is **not** a copy of argparse:
+
+| Feature | argparse | CliParse |
+|---------|----------|----------|
+| Main class | `ArgumentParser` | `CliApp` |
+| Define parameter | `add_argument()` | `define_param()` |
+| Define flag | `add_argument(action='store_true')` | `define_flag()` |
+| Types | String names | `ParamType` enum |
+| Validation | Limited | Rich constraints |
+| Colors | ❌ | ✅ |
+| Groups | Basic | Advanced with descriptions |
+
+### Parameters vs Flags
+
+**Parameters** take values:
 ```python
-app = CliApp(
-    name="myapp",              # Application name
-    version="1.0.0",           # Version string
-    description="My app",      # Help description
-    auto_help=True,            # Auto add -h/--help
-    enable_color=True          # Use colors
+app.define_param("input")           # Positional
+app.define_param("--output")        # Optional
+app.define_param("--count", param_type=ParamType.INTEGER)
+```
+
+**Flags** are boolean:
+```python
+app.define_flag("verbose", short="v")   # True if present
+app.define_flag("--debug")              # False by default
+```
+
+## API Reference
+
+### CliApp
+
+**Constructor:**
+```python
+CliApp(
+    name: str = "app",              # Application name
+    version: str = "1.0.0",         # Version string
+    description: str = "",          # Help description
+    auto_help: bool = True,         # Auto-add -h/--help
+    enable_color: bool = True,      # Use ANSI colors
+    strict: bool = False            # Strict parsing mode
 )
 ```
 
-#### Core Methods
+**Methods:**
 
-**`define_param(name, **kwargs)`** - Define a parameter (positional or optional)
+```python
+# Define parameters and flags
+app.define_param(name, **options) -> Parameter
+app.define_flag(name, **options) -> Flag
+
+# Organize parameters
+app.create_group(name, description) -> ParameterGroup
+
+# Add validation constraints
+app.require_one_of(*param_names)
+app.forbid_together(*param_names)
+app.require_if(when, then)
+app.add_constraint(validator_func)
+
+# Parse and display
+app.parse(args=None) -> Dict[str, Any]
+app.show_help()
+app.get_help_text() -> str
+```
+
+### define_param()
 
 ```python
 app.define_param(
-    name,                           # "filename" or "--output"
-    aliases=(),                     # Alternative names
-    short="o",                      # Short flag like "-o"
-    param_type=ParamType.STRING,    # Type of value
-    required=False,                 # Must be provided
-    help_text="",                   # Help description
-    default=None,                   # Default value
-    choices=None,                   # Allowed values
-    validator=None,                 # Custom validation function
-    transformer=None,               # Transform input
-    env_var=None,                   # Environment variable fallback
-    multi=False,                    # Accept multiple values
-    hidden=False                    # Hide from help
-)
+    name: str,                          # "input" or "--output"
+    *aliases: str,                      # Alternative names
+    param_type: ParamType = STRING,     # Value type
+    required: bool = False,             # Must be provided
+    help_text: str = "",                # Help description
+    default: Any = None,                # Default value
+    choices: List[Any] = None,          # Allowed values
+    validator: Callable = None,         # Custom validation
+    transformer: Callable = None,       # Transform input
+    env_var: str = None,                # Environment variable fallback
+    short: str = None,                  # Short flag like "o"
+    multi: bool = False,                # Accept multiple values
+    hidden: bool = False                # Hide from help
+) -> Parameter
 ```
 
-Examples:
+**Examples:**
+
 ```python
 # Positional parameter
-app.define_param("filename", required=True)
+app.define_param("filename", required=True, help_text="Input file")
 
 # Optional with short flag
-app.define_param("--output", short="o")
+app.define_param("--output", short="o", help_text="Output file")
 
 # With type
-app.define_param("--count", param_type=ParamType.INTEGER)
+app.define_param("--count", param_type=ParamType.INTEGER, default=1)
 
 # With choices
 app.define_param("--format", param_type=ParamType.CHOICE, 
                  choices=["json", "csv", "xml"])
 
-# Multi-value
-app.define_param("--include", multi=True)
-
 # Environment variable fallback
 app.define_param("--api-key", env_var="API_KEY")
+
+# Custom transformer
+def to_path(value):
+    return Path(value)
+app.define_param("--input", transformer=to_path)
 ```
 
-**`define_flag(name, **kwargs)`** - Define a boolean flag
+### define_flag()
 
 ```python
 app.define_flag(
-    name,              # "verbose" or "--debug"
-    aliases=(),        # Alternative names
-    short="v",         # Short flag like "-v"
-    help_text="",      # Help description
-    default=False,     # Default value
-    hidden=False       # Hide from help
-)
+    name: str,                  # "verbose" or "--debug"
+    *aliases: str,              # Alternative names
+    short: str = None,          # Short flag like "v"
+    help_text: str = "",        # Help description
+    default: bool = False,      # Default value
+    hidden: bool = False        # Hide from help
+) -> Flag
 ```
 
-**`create_group(name, description="")`** - Create a parameter group
+**Examples:**
 
 ```python
-app.create_group("Processing", "Data processing options")
-# Subsequent define_param/define_flag calls belong to this group
-app.define_param("--format", ...)
-app.define_param("--threads", ...)
-```
+# Simple flag
+app.define_flag("verbose", short="v", help_text="Verbose output")
 
-#### Constraint Methods
-
-**`forbid_together(*param_names)`** - Parameters cannot be used together
-```python
-app.forbid_together("verbose", "quiet")
-```
-
-**`require_one_of(*param_names)`** - At least one required
-```python
-app.require_one_of("--input-file", "--input-dir")
-```
-
-**`require_if(trigger, required)`** - Conditional requirement
-```python
-app.require_if("--encrypt", "--key-file")
-```
-
-**`add_constraint(validator)`** - Custom constraint function
-```python
-def my_constraint(config):
-    if config['threads'] > 4 and config.get('memory') < 8:
-        raise ValidationError("High threads needs 8GB+ memory")
-    return True
-
-app.add_constraint(my_constraint)
-```
-
-#### Output Methods
-
-**`parse(args=None)`** - Parse arguments and return config dict
-```python
-config = app.parse()              # Parse sys.argv
-config = app.parse(["file.txt"])  # Parse specific args
-```
-
-**`show_help()`** - Display colored help
-```python
-app.show_help()
-```
-
-**`get_help_text()`** - Get help as string
-```python
-help_str = app.get_help_text()
+# Long form only
+app.define_flag("--debug", help_text="Enable debug mode")
 ```
 
 ### ParamType Enum
 
-Type-safe parameter types:
-
 ```python
+from cliparse import ParamType
+
 ParamType.STRING       # Text (default)
 ParamType.INTEGER      # Whole numbers
 ParamType.FLOAT        # Decimal numbers
 ParamType.BOOLEAN      # True/False
-ParamType.PATH         # File paths
-ParamType.CHOICE       # Limited set of values
-ParamType.MULTI        # Multiple values
+ParamType.PATH         # File paths (returns Path object)
+ParamType.CHOICE       # Limited set (use with choices=)
+ParamType.MULTI        # Multiple values (use with multi=True)
 ```
 
-### Exceptions
+### Parameter Groups
 
-**`ValidationError`** - Validation failed
+```python
+# Create a group
+app.create_group("Processing Options", "Options for data processing")
+
+# Subsequent definitions belong to this group
+app.define_param("--format", ...)
+app.define_param("--threads", ...)
+
+# Create another group
+app.create_group("Output Options")
+app.define_param("--output", ...)
+```
+
+### Validation Constraints
+
+**Forbid parameters together:**
+```python
+app.define_flag("verbose")
+app.define_flag("quiet")
+app.forbid_together("verbose", "quiet")
+```
+
+**Require at least one:**
+```python
+app.define_param("--input-file")
+app.define_param("--input-dir")
+app.require_one_of("--input-file", "--input-dir")
+```
+
+**Conditional requirements:**
+```python
+app.define_flag("encrypt")
+app.define_param("--key-file")
+app.require_if("encrypt", ["--key-file"])
+```
+
+**Custom constraints:**
+```python
+def validate_config(config):
+    if config['threads'] > 4 and config.get('memory', 0) < 8:
+        raise ValidationError("High thread count requires 8GB+ memory")
+    return True
+
+app.add_constraint(validate_config)
+```
+
+### Parsing
+
+```python
+# Parse sys.argv
+config = app.parse()
+
+# Parse specific arguments
+config = app.parse(["file.txt", "--count", "5", "-v"])
+
+# Access values
+print(config['filename'])
+print(config['count'])
+print(config['verbose'])
+```
+
+Returns a dictionary where:
+- Parameter names become keys (with `--` stripped and `-` replaced with `_`)
+- Values are coerced to the specified `param_type`
+- Missing optional parameters have their `default` value
+- Flags are `True` if present, `False` otherwise
+
+### Exception Handling
 
 ```python
 from cliparse import ValidationError
@@ -204,177 +271,139 @@ from cliparse import ValidationError
 try:
     config = app.parse()
 except ValidationError as e:
-    print(f"Invalid: {e}")
+    print(f"Error: {e}")
+    app.show_help()
+    sys.exit(1)
 ```
 
-## 🔴 Common Patterns
+## Usage Examples
 
-### Input/Output Files
-```python
-app.define_param("input", required=True, param_type=ParamType.PATH)
-app.define_param("--output", short="o", param_type=ParamType.PATH)
+### File Processor
 
-config = app.parse()
-process_file(config['input'], config.get('output'))
-```
-
-### Processing Options
-```python
-app.create_group("Processing", "Processing settings")
-app.define_param("--format", param_type=ParamType.CHOICE,
-                 choices=["json", "csv", "xml"])
-app.define_param("--threads", param_type=ParamType.INTEGER, default=4)
-```
-
-### Verbosity Levels
-```python
-app.define_flag("quiet", short="q")
-app.define_flag("verbose", short="v")
-app.forbid_together("quiet", "verbose")
-
-config = app.parse()
-```
-
-### Mutually Exclusive Options
-```python
-app.define_param("--local-dir")
-app.define_param("--remote-url")
-app.define_param("--s3-bucket")
-app.require_one_of("--local-dir", "--remote-url", "--s3-bucket")
-```
-
-### Dependent Options
-```python
-app.define_flag("encrypt")
-app.define_param("--key-file")
-app.require_if("encrypt", "--key-file")
-
-config = app.parse()
-if config['encrypt']:
-    key = config['key_file']  # Guaranteed to exist
-```
-
-### Environment Variables
-```python
-app.define_param("--api-key", env_var="API_KEY")
-app.define_param("--api-url", env_var="API_URL", 
-                 default="https://api.example.com")
-```
-
-### Multi-Value Parameters
-```python
-app.define_param("--include", multi=True)
-
-# Usage: program --include a.txt --include b.txt
-# Result: config['include'] = ['a.txt', 'b.txt']
-```
-
-### Custom Type Conversion
-```python
-from pathlib import Path
-
-def to_path(value):
-    path = Path(value)
-    if not path.exists():
-        raise ValueError(f"File not found: {value}")
-    return path
-
-app.define_param("--input", transformer=to_path)
-```
-
-## 📋 Real-World Examples
-
-### File Converter
 ```python
 from cliparse import CliApp, ParamType
 
-app = CliApp(name="converter", version="1.0.0")
-app.define_param("input_file", param_type=ParamType.PATH)
-app.define_param("--output", short="o", param_type=ParamType.PATH)
+app = CliApp(name="processor", version="1.0.0", 
+             description="Process data files")
+
+app.define_param("input", required=True, param_type=ParamType.PATH,
+                 help_text="Input file to process")
+app.define_param("--output", short="o", param_type=ParamType.PATH,
+                 help_text="Output file (default: stdout)")
+
+app.create_group("Processing Options")
 app.define_param("--format", param_type=ParamType.CHOICE,
-                 choices=["json", "csv", "xml"])
-app.define_flag("verbose", short="v")
+                 choices=["json", "csv", "xml"], default="json",
+                 help_text="Output format")
+app.define_param("--threads", short="t", param_type=ParamType.INTEGER,
+                 default=4, help_text="Number of worker threads")
+
+app.define_flag("verbose", short="v", help_text="Verbose output")
+app.define_flag("--debug", help_text="Debug mode")
 
 config = app.parse()
 
-input_data = read_file(config['input_file'])
-if config.get('output'):
-    write_file(config['output'], input_data)
-else:
-    print(input_data)
-```
-
-### Data Processor
-```python
-app = CliApp(name="processor", version="2.0.0")
-app.define_param("data_file", param_type=ParamType.PATH)
-
-app.create_group("Processing", "Processing options")
-app.define_param("--format", param_type=ParamType.CHOICE,
-                 choices=["json", "csv"], default="json")
-app.define_param("--threads", param_type=ParamType.INTEGER, default=4)
-
-app.create_group("Output", "Output options")
-app.define_param("--output", short="o", param_type=ParamType.PATH)
-app.define_flag("quiet", short="q")
-
-app.forbid_together("quiet", "--output")
-
-config = app.parse()
-
-processor = DataProcessor(
+# Use the config
+process_file(
+    input_file=config['input'],
+    output_file=config.get('output'),
     format=config['format'],
-    threads=config['threads']
+    threads=config['threads'],
+    verbose=config['verbose']
 )
-result = processor.process(config['data_file'])
-
-if config.get('output'):
-    write_result(config['output'], result)
 ```
 
-## 🎨 Output Example
+### With Constraints
+
+```python
+app = CliApp(name="backup", version="1.0.0")
+
+app.define_param("--local-dir", help_text="Local directory")
+app.define_param("--remote-url", help_text="Remote URL")
+app.define_param("--s3-bucket", help_text="S3 bucket")
+
+# Must specify exactly one backup target
+app.require_one_of("--local-dir", "--remote-url", "--s3-bucket")
+
+app.define_flag("encrypt", help_text="Encrypt backup")
+app.define_param("--key-file", help_text="Encryption key")
+
+# If encrypting, key is required
+app.require_if("encrypt", ["--key-file"])
+
+config = app.parse()
+```
+
+### Environment Variable Fallback
+
+```python
+app = CliApp(name="api-client", version="1.0.0")
+
+app.define_param("--api-key", env_var="API_KEY", required=True,
+                 help_text="API key (or set API_KEY env var)")
+app.define_param("--api-url", env_var="API_URL",
+                 default="https://api.example.com",
+                 help_text="API URL")
+
+# If --api-key not provided, falls back to API_KEY environment variable
+config = app.parse()
+```
+
+## Help Output
+
+CliParse generates beautiful, organized help:
 
 ```
-➤ PROCESSOR v2.0.0
-  Advanced data processor
+➤ PROCESSOR v1.0.0
+  Process data files
 
 USAGE:
-  processor [OPTIONS] input_file
+  processor [OPTIONS] [PARAMETERS]
 
 OPTIONS:
-  input_file                     Input file
-  -o, --output                   Output file
+  input                          Input file to process
+  -o, --output                   Output file (default: stdout)
 
-Processing:
+Processing Options:
   -f, --format                   Output format
-  -t, --threads                  Worker threads
+  -t, --threads                  Number of worker threads
 
-✅ Configuration validated!
+  -v, verbose                    Verbose output
+  --debug                        Debug mode
+  -h, --help                     Show help message
 ```
 
-## 📈 Project Stats
+## Implementation Notes
 
-- **Core Module**: 551 lines
-- **Examples**: 2 working applications
-- **Features**: 25+
-- **Dependencies**: 0 (pure stdlib)
-- **Python**: 3.6+
+- Positional parameters are identified by names not starting with `-`
+- The `dest` name (dictionary key) is derived from parameter name: strips `--`, replaces `-` with `_`
+- Short flags are automatically added to the parameter's `all_flags` set
+- Multi-value parameters are not fully implemented in current parsing logic
+- Type coercion happens automatically based on `param_type`
+- Boolean flags don't take values; their presence sets them to `True`
 
-## 🎓 Quick Links
+## Comparison with argparse
 
-- **Example Files**: `example_cliparse_simple.py`, `example_cliparse_advanced.py`
-- **Source Code**: `cliparse.py` (main module)
-- **See Also**: Look at examples for more patterns
+**What's different:**
+- Naming: `CliApp`, `define_param`, `define_flag` (not `ArgumentParser`, `add_argument`)
+- Types: Type-safe `ParamType` enum instead of string names
+- Flags: Separate `define_flag()` method for boolean flags
+- Constraints: Rich semantic validation (forbid, require, conditional)
+- Output: Colored, emoji-enhanced help messages
+- Groups: More descriptive with better organization
 
-## 🚀 Getting Started
+**What's similar:**
+- Both support positional and optional arguments
+- Both have short flags (`-v`)
+- Both generate help automatically
+- Both are zero-dependency
 
-1. Copy `cliparse.py` to your project
-2. Import: `from cliparse import CliApp, ParamType`
-3. Create app: `app = CliApp(name="myapp")`
-4. Define params: `app.define_param(...)`
-5. Parse: `config = app.parse()`
-6. Use config dict!
+## License
 
----
+Custom License - See LICENSE file for details.
 
-**CliParse** - Modern CLI parsing made simple.
+## Author
+
+S0meR4nd0mGuy
+
+Version: 2.0.0

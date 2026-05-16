@@ -2,6 +2,7 @@
 Simple examples demonstrating basic logging usage.
 """
 
+import advanced_logging
 from advanced_logging import get_logger, LogLevel, LogContext
 
 # Example 1: One-line console logging

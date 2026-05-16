@@ -3,7 +3,7 @@
 Advanced example using CliParse.
 Demonstrates all major features of the modern CLI parser.
 """
-
+import cliparse
 from cliparse import CliApp, ParamType, ValidationError
 import sys
 

@@ -1,7 +1,7 @@
 """
 Advanced logging examples demonstrating all features.
 """
-
+import advanced_logging
 from advanced_logging import (
     get_logger, get_logger, LogLevel, LogContext, Handler, Formatter,
     FileHandler, RotatingFileHandler, ConsoleHandler, LoggerManager, LogRecord

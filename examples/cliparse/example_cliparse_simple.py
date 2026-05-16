@@ -4,6 +4,7 @@ Simple example using CliParse - the modern CLI parser.
 Shows minimal usage for basic CLI applications.
 """
 
+import cliparse
 from cliparse import CliApp, ParamType
 import sys
 

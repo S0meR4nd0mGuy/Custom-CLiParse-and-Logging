@@ -135,8 +135,8 @@ class Formatter:
     FORMATS = {
         "simple": "{level_name} - {message}",
         "standard": "[{timestamp}] {level_name:8} - {logger_name} - {message}",
-        "detailed": "[{timestamp}] {level_name:8} - {logger_name} - {function_name}:{line_number} - {message}",
-        "full": "[{timestamp}] {level_name:8} - {logger_name} - {module_name}:{function_name}:{line_number} - {message}",
+        "detailed": "[{timestamp}] {level_name:8} - {logger_name} - {file_name}:{line_number} - {message}",
+        "full": "[{timestamp}] {level_name:8} - {logger_name} - {file_name}:{function_display}:{line_number} - {message}",
         "minimal": "{level_name} | {message}",
     }
     
@@ -166,17 +166,19 @@ class Formatter:
         if self.use_colors:
             level_name = f"{self.level_colors.get(record.level_name, '')}{level_name}{Color.RESET}"
         
+        # Determine function display: use function name if available, otherwise "N/A"
+        function_display = record.function_name if record.function_name else "N/A"
+        
         try:
-            # If logging from top-level module, show the source file name instead of '<module>'
-            fn_display = record.function_name if (record.function_name and record.function_name != "<module>") else record.file_name or "?"
-
             formatted = self.fmt.format(
                 timestamp=timestamp,
                 level_name=level_name,
                 logger_name=record.logger_name,
                 message=record.message,
                 module_name=record.module_name,
-                function_name=fn_display,
+                file_name=record.file_name,
+                function_name=record.function_name or "N/A",
+                function_display=function_display,
                 line_number=record.line_number,
                 thread_name=record.thread_name,
                 thread_id=record.thread_id,
@@ -343,15 +345,16 @@ class Logger:
         import inspect
         
         frame = inspect.currentframe()
-        # Skip internal frames
+        # Skip internal frames (frames from this logging module)
         while frame and frame.f_code.co_filename == __file__:
             frame = frame.f_back
         
         if frame:
             module_name = frame.f_globals.get("__name__", "unknown")
-            function_name = frame.f_code.co_name
+            raw_function_name = frame.f_code.co_name
+            # If it's top-level module code, set function_name to None so formatter shows N/A
+            function_name = raw_function_name if raw_function_name != "<module>" else None
             line_number = frame.f_lineno
-            # capture the source file name (basename) for top-level module logging
             try:
                 file_name = Path(frame.f_code.co_filename).name
             except Exception:

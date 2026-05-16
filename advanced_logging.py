@@ -111,6 +111,7 @@ class LogRecord:
     logger_name: str
     message: str
     module_name: str
+    file_name: str
     function_name: Optional[str]
     line_number: int
     thread_name: str
@@ -166,13 +167,16 @@ class Formatter:
             level_name = f"{self.level_colors.get(record.level_name, '')}{level_name}{Color.RESET}"
         
         try:
+            # If logging from top-level module, show the source file name instead of '<module>'
+            fn_display = record.function_name if (record.function_name and record.function_name != "<module>") else record.file_name or "?"
+
             formatted = self.fmt.format(
                 timestamp=timestamp,
                 level_name=level_name,
                 logger_name=record.logger_name,
                 message=record.message,
                 module_name=record.module_name,
-                function_name=record.function_name or "?",
+                function_name=fn_display,
                 line_number=record.line_number,
                 thread_name=record.thread_name,
                 thread_id=record.thread_id,
@@ -347,10 +351,16 @@ class Logger:
             module_name = frame.f_globals.get("__name__", "unknown")
             function_name = frame.f_code.co_name
             line_number = frame.f_lineno
+            # capture the source file name (basename) for top-level module logging
+            try:
+                file_name = Path(frame.f_code.co_filename).name
+            except Exception:
+                file_name = "<unknown>"
         else:
             module_name = "unknown"
             function_name = None
             line_number = 0
+            file_name = "<unknown>"
         
         # Collect extra context
         extra = {}
@@ -364,6 +374,7 @@ class Logger:
             logger_name=self.name,
             message=str(message),
             module_name=module_name,
+            file_name=file_name,
             function_name=function_name,
             line_number=line_number,
             thread_name=threading.current_thread().name,

@@ -3,3 +3,8 @@
 [2026-05-16 16:54:52.674] WARNING  - multi_handler - <module>:52 - Warning message (file only)
 [2026-05-16 16:54:52.674] ERROR    - multi_handler - <module>:53 - Error message (console + file)
 [2026-05-16 16:54:52.674] CRITICAL - multi_handler - <module>:54 - Critical message (console + file)
+[2026-05-16 22:28:14.401] DEBUG    - multi_handler - example_logging_advanced.py:50 - Debug info (file only)
+[2026-05-16 22:28:14.401] INFO     - multi_handler - example_logging_advanced.py:51 - Info message (file only)
+[2026-05-16 22:28:14.402] WARNING  - multi_handler - example_logging_advanced.py:52 - Warning message (file only)
+[2026-05-16 22:28:14.402] ERROR    - multi_handler - example_logging_advanced.py:53 - Error message (console + file)
+[2026-05-16 22:28:14.403] CRITICAL - multi_handler - example_logging_advanced.py:54 - Critical message (console + file)

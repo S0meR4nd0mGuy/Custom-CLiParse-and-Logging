@@ -16,7 +16,7 @@ formatter = Formatter("detailed", use_colors=False)
 
 # Add rotating file handler (rotate after 1MB, keep 3 backups)
 rotating_handler = RotatingFileHandler(
-    "rotating_app.log",
+    """D:\\VSC\\tries\\examples\\logging\\rotating_app.log""",
     level=LogLevel.DEBUG,
     formatter=formatter,
     max_bytes=1_000_000,  # 1MB

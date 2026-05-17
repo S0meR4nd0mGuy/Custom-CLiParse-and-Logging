@@ -1,2 +1,1 @@
-[2026-05-16 16:54:52.682] ERROR    - production_app - <module>:232 - Failed to connect to secondary database
-[2026-05-16 22:28:14.419] ERROR    - production_app - example_logging_advanced.py:232 - Failed to connect to secondary database
+[2026-05-17 10:34:17.385] ERROR    - production_app - example_logging_advanced.py:232 - Failed to connect to secondary database

@@ -249,7 +249,24 @@ class FileHandler(Handler):
     def __init__(self, filename: str, level: LogLevel = LogLevel.DEBUG,
                  formatter: Optional[Formatter] = None, mode: str = "a"):
         super().__init__(level, formatter)
+        # Resolve relative filename against calling script directory when possible
+        try:
+            if not Path(filename).is_absolute():
+                import inspect
+
+                frame = inspect.currentframe()
+                # walk back until we find a frame outside this module
+                while frame and frame.f_code.co_filename == __file__:
+                    frame = frame.f_back
+
+                if frame:
+                    caller_dir = Path(frame.f_code.co_filename).parent
+                    filename = str(caller_dir / filename)
+        except Exception:
+            pass
+
         self.filename = Path(filename)
+        # Ensure parent directories are created (allow nested dirs)
         self.filename.parent.mkdir(parents=True, exist_ok=True)
         self.mode = mode
         self._lock = threading.Lock()
@@ -269,6 +286,21 @@ class RotatingFileHandler(Handler):
                  formatter: Optional[Formatter] = None, max_bytes: int = 10_000_000,
                  backup_count: int = 5):
         super().__init__(level, formatter)
+        # Resolve relative filename against calling script directory when possible
+        try:
+            if not Path(filename).is_absolute():
+                import inspect
+
+                frame = inspect.currentframe()
+                while frame and frame.f_code.co_filename == __file__:
+                    frame = frame.f_back
+
+                if frame:
+                    caller_dir = Path(frame.f_code.co_filename).parent
+                    filename = str(caller_dir / filename)
+        except Exception:
+            pass
+
         self.filename = Path(filename)
         self.filename.parent.mkdir(parents=True, exist_ok=True)
         self.max_bytes = max_bytes
@@ -456,6 +488,22 @@ class Logger:
     def add_file_handler(self, filename: str, level: LogLevel = LogLevel.DEBUG,
                         format_style: str = "standard") -> "Logger":
         """Add a file handler."""
+        # Resolve relative filenames against the calling script's directory
+        try:
+            import inspect
+
+            frame = inspect.currentframe()
+            # walk back to the first frame outside this module
+            while frame and frame.f_code.co_filename == __file__:
+                frame = frame.f_back
+
+            if frame and not Path(filename).is_absolute():
+                caller_dir = Path(frame.f_code.co_filename).parent
+                filename = str(caller_dir / filename)
+        except Exception:
+            # fallback to given filename
+            pass
+
         formatter = Formatter(format_style, use_colors=False)
         handler = FileHandler(filename, level, formatter)
         return self.add_handler(handler)
@@ -464,6 +512,20 @@ class Logger:
                                  format_style: str = "standard", max_bytes: int = 10_000_000,
                                  backup_count: int = 5) -> "Logger":
         """Add a rotating file handler."""
+        # Resolve relative filenames against the calling script's directory
+        try:
+            import inspect
+
+            frame = inspect.currentframe()
+            while frame and frame.f_code.co_filename == __file__:
+                frame = frame.f_back
+
+            if frame and not Path(filename).is_absolute():
+                caller_dir = Path(frame.f_code.co_filename).parent
+                filename = str(caller_dir / filename)
+        except Exception:
+            pass
+
         formatter = Formatter(format_style, use_colors=False)
         handler = RotatingFileHandler(filename, level, formatter, max_bytes, backup_count)
         return self.add_handler(handler)

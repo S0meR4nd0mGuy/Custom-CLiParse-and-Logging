@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Advanced example using CliParse.
 Demonstrates all major features of the modern CLI parser.

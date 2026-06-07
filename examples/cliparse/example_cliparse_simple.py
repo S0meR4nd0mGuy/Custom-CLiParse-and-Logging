@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Simple example using CliParse - the modern CLI parser.
 Shows minimal usage for basic CLI applications.
